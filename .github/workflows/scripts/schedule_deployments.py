@@ -85,18 +85,24 @@ def get_options():
     if not templates_pn.exists():
         LOGGER.error("The jinja templates '%s' not found.", templates_pn)
         options_okay = False
-    schedule_pn = PROG_PATH.parent.parent.parent.joinpath(
-        dir_output, "schedule-deployments.jsonl"
-    )
+    dir_namespace = "minitex-matchers"
+    dir_storage = PROG_PATH.parent.parent.parent.joinpath(dir_output, dir_namespace)
+    if not dir_storage.exists():
+        LOGGER.error("The namespace directory '%s' not found.", dir_namespace)
+        options_okay = False
     if not options_okay:
         sys.exit(2)
-    return int(job_id), action, schedule, templates_pn, schedule_pn
+    return int(job_id), action, schedule, templates_pn, dir_storage
 
 
-def append_schedule(job_id, action, id_pool, schedule_pn):
+def append_schedule(job_id, action, id_pool, dir_storage):
     """
     Composes the JSONL and appends to file.
     """
+    dir_log = dir_storage.joinpath("log")
+    os.makedirs(dir_log, exist_ok=True)
+    schedule_pn = dir_log.joinpath("schedule-deployments.jsonl")
+    LOGGER.debug("schedule_pn=%s", schedule_pn)
     json_packet = {}
     json_packet["id"] = job_id
     json_packet["scheduleDate"] = (
@@ -114,8 +120,8 @@ def main():
     """
     Append the schedule JSONL to schedule-deployments.jsonl file.
     """
-    job_id, action, schedule, templates_pn, schedule_pn = get_options()
-    # LOGGER.debug("schedule=%s schedule_pn=%s", schedule, schedule_pn)
+    job_id, action, schedule, templates_pn, dir_storage = get_options()
+    LOGGER.debug("schedule=%s", schedule)
     deployments = schedule.split(",")
     matchers = []
     id_pool = ""
@@ -124,7 +130,7 @@ def main():
         id_matcher = f"{matcher}~{sha[0:7]}"
         matchers.append(id_matcher)
     id_pool = "_".join(matchers)
-    append_schedule(job_id, action, id_pool, schedule_pn)
+    append_schedule(job_id, action, id_pool, dir_storage)
     env_jinja = Environment(loader=FileSystemLoader(templates_pn))
     template_cr = env_jinja.get_template("cr.yaml.jinja")
     content_cr = template_cr.render(

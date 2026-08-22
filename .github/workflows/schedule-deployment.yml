@@ -106,12 +106,12 @@ jobs:
         run: uv run .github/workflows/scripts/schedule_deployments.py -l info
 
       - name: Show recent schedule
-        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/schedule-deployments.jsonl
+        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/log/schedule-deployments.jsonl
 
       - name: Commit git changes and push
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
-          ls
+          ls -R
           git config --global user.name "github-actions-reservoir-scripts"
           git config --global user.email "github-actions-reservoir-scripts@indexdata.com"
 #          git add .
