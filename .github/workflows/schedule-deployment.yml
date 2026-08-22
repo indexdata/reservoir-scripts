@@ -108,14 +108,14 @@ jobs:
       - name: Commit git changes and push
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
-          ls -R
           git config --global user.name "github-actions-reservoir-scripts"
           git config --global user.email "github-actions-reservoir-scripts@indexdata.com"
-          git add .
           git status
-          git commit -m "Apply schedule deployments"
-          echo "Do git push ..."
-          git push
+#          git add .
+#          git status
+#          git commit -m "Apply schedule deployments"
+#          echo "Do git push ..."
+#          git push
 
       - name: Show recent schedule
-        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/log/schedule-deployments.jsonl
+        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/minitex-matchers/log/schedule-deployments.jsonl
