@@ -1,0 +1,10 @@
+---
+extends: default
+
+rules:
+  comments-indentation: disable
+  trailing-spaces: enable
+  new-line-at-end-of-file: enable
+  line-length: disable
+  document-start:
+    present: false

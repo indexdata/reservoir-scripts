@@ -110,12 +110,11 @@ jobs:
           cd ${{ secrets.REPO_NAME_GITOPS }}
           git config --global user.name "github-actions-reservoir-scripts"
           git config --global user.email "github-actions-reservoir-scripts@indexdata.com"
+          git add .
           git status
-#          git add .
-#          git status
-#          git commit -m "Apply schedule deployments"
-#          echo "Do git push ..."
-#          git push
+          git commit -m "Generate pool custom resource"
+          echo "Do git push ..."
+          git push
 
       - name: Show recent schedule
         run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/minitex-matchers/log/schedule-deployments.jsonl

@@ -26,7 +26,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.5.2"
+SCRIPT_VERSION = "1.5.3"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -101,7 +101,7 @@ def load_matchers_summary():
     """
     input_fn = "matchers-summary.json"
     input_pn = PROG_PATH.parent.parent.parent.joinpath(input_fn)
-    LOGGER.debug("%s", input_pn)
+    # LOGGER.debug("%s", input_pn)
     with open(input_pn, mode="r", encoding="utf-8") as json_fh:
         try:
             summary = json.load(json_fh)
@@ -112,11 +112,12 @@ def load_matchers_summary():
     return summary
 
 
-def get_matcher_script_path(matchers_summary, matcher):
+def get_matcher_script(matchers_summary, matcher):
     """
-    Get the script pathname for this matcher.
+    Get the script pathname and type for this matcher.
     """
     script_fn = None
+    script_type = None
     input_fn = "matchers-summary.json"
     if not any(dictionary.get("name") == matcher for dictionary in matchers_summary):
         msg = f"Matcher '{matcher}' not found in '{input_fn}' file."
@@ -143,31 +144,66 @@ def get_matcher_script_path(matchers_summary, matcher):
             )
             LOGGER.critical(msg)
             sys.exit(1)
-    return script_fn
+        try:
+            matcher_details[0]["type"]
+        except KeyError:
+            msg = (
+                "The 'type' property is not found for "
+                f"matcher '{matcher}' in '{input_fn}' file."
+            )
+            LOGGER.critical(msg)
+            sys.exit(1)
+        else:
+            script_type = matcher_details[0]["type"]
+    return script_fn, script_type
 
 
 def assemble_pool_details(schedule, matchers_summary):
     """
     Assembles the details of this pool.
     """
-    LOGGER.debug("schedule=%s", schedule)
+    # LOGGER.debug("schedule=%s", schedule)
     deployments = schedule.split(",")
     matchers = []
+    pool_matchers = []
     pool_details = {"matchers": []}
     for deployment in deployments:
         matcher_packet = {}
         matcher, sha = deployment.split(":")
         matcher_packet["name"] = matcher
         matcher_packet["sha"] = sha
-        matcher_fn = get_matcher_script_path(matchers_summary, matcher)
+        matcher_fn, matcher_type = get_matcher_script(matchers_summary, matcher)
         matcher_packet["script"] = matcher_fn
+        matcher_packet["type"] = matcher_type
         id_matcher = f"{matcher}~{sha[0:7]}"
         matcher_packet["id"] = id_matcher
         matchers.append(id_matcher)
+        pool_matchers.append(f"{id_matcher}-matcher::matchkey")
         pool_details["matchers"].append(matcher_packet)
     id_pool = "_".join(matchers)
     pool_details["id_pool"] = id_pool
+    pool_details["pool_matcher"] = ", ".join(pool_matchers)
     return id_pool, pool_details
+
+
+def generate_cr(templates_pn, pool_details, dir_storage):
+    """
+    Generates and stores the custom resource YAML.
+    """
+    # pprint.pprint(pool_details)
+    dir_pools = dir_storage.joinpath("pools")
+    os.makedirs(dir_pools, exist_ok=True)
+    pool_pn = dir_pools.joinpath(f"{pool_details['id_pool']}.yaml")
+    env_jinja = Environment(loader=FileSystemLoader(templates_pn))
+    template_cr = env_jinja.get_template("cr.yaml.jinja")
+    content_cr = template_cr.render(
+        id_pool=pool_details["id_pool"],
+        pool_matcher=pool_details["pool_matcher"],
+        matchers=pool_details["matchers"],
+    )
+    with open(pool_pn, mode="w", encoding="utf-8") as output_fh:
+        output_fh.write(content_cr)
+        output_fh.write("\n")
 
 
 def append_schedule(job_id, action, id_pool, dir_storage):
@@ -197,13 +233,8 @@ def main():
     job_id, action, schedule, templates_pn, dir_storage = get_options()
     matchers_summary = load_matchers_summary()
     id_pool, pool_details = assemble_pool_details(schedule, matchers_summary)
+    generate_cr(templates_pn, pool_details, dir_storage)
     append_schedule(job_id, action, id_pool, dir_storage)
-    env_jinja = Environment(loader=FileSystemLoader(templates_pn))
-    template_cr = env_jinja.get_template("cr.yaml.jinja")
-    content_cr = template_cr.render(
-        mytext="FooBar",
-    )
-    pprint.pprint(content_cr)
 
 
 if __name__ == "__main__":
