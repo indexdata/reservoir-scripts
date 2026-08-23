@@ -26,7 +26,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.5.1"
+SCRIPT_VERSION = "1.5.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -116,7 +116,7 @@ def get_matcher_script_path(matchers_summary, matcher):
     """
     Get the script pathname for this matcher.
     """
-    script_pn = None
+    script_fn = None
     input_fn = "matchers-summary.json"
     if not any(dictionary.get("name") == matcher for dictionary in matchers_summary):
         msg = f"Matcher '{matcher}' not found in '{input_fn}' file."
@@ -143,7 +143,31 @@ def get_matcher_script_path(matchers_summary, matcher):
             )
             LOGGER.critical(msg)
             sys.exit(1)
-    return script_pn
+    return script_fn
+
+
+def assemble_pool_details(schedule, matchers_summary):
+    """
+    Assembles the details of this pool.
+    """
+    LOGGER.debug("schedule=%s", schedule)
+    deployments = schedule.split(",")
+    matchers = []
+    pool_details = {"matchers": []}
+    for deployment in deployments:
+        matcher_packet = {}
+        matcher, sha = deployment.split(":")
+        matcher_packet["name"] = matcher
+        matcher_packet["sha"] = sha
+        matcher_fn = get_matcher_script_path(matchers_summary, matcher)
+        matcher_packet["script"] = matcher_fn
+        id_matcher = f"{matcher}~{sha[0:7]}"
+        matcher_packet["id"] = id_matcher
+        matchers.append(id_matcher)
+        pool_details["matchers"].append(matcher_packet)
+    id_pool = "_".join(matchers)
+    pool_details["id_pool"] = id_pool
+    return id_pool, pool_details
 
 
 def append_schedule(job_id, action, id_pool, dir_storage):
@@ -171,16 +195,8 @@ def main():
     Append the schedule JSONL to schedule-deployments.jsonl file.
     """
     job_id, action, schedule, templates_pn, dir_storage = get_options()
-    LOGGER.debug("schedule=%s", schedule)
     matchers_summary = load_matchers_summary()
-    deployments = schedule.split(",")
-    matchers = []
-    for deployment in deployments:
-        matcher, sha = deployment.split(":")
-        matcher_pn = get_matcher_script_path(matchers_summary, matcher)
-        id_matcher = f"{matcher}~{sha[0:7]}"
-        matchers.append(id_matcher)
-    id_pool = "_".join(matchers)
+    id_pool, pool_details = assemble_pool_details(schedule, matchers_summary)
     append_schedule(job_id, action, id_pool, dir_storage)
     env_jinja = Environment(loader=FileSystemLoader(templates_pn))
     template_cr = env_jinja.get_template("cr.yaml.jinja")
