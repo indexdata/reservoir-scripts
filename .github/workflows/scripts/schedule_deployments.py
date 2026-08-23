@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """
+Generate and commit Kubernetes custom resource for a pool at the GitOps repository.
 Append the schedule JSONL to schedule-deployments.jsonl file.
 
 NOTE: Please use 'black' to re-format code.
@@ -26,7 +27,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.5.3"
+SCRIPT_VERSION = "1.5.4"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -72,6 +73,11 @@ def get_options():
         LOGGER.error("Missing env: SCHEDULE")
         options_okay = False
     try:
+        branch = os.environ["BRANCH_NAME"]
+    except KeyError:
+        LOGGER.error("Missing env: BRANCH_NAME")
+        options_okay = False
+    try:
         dir_output = os.environ["DIR_OUTPUT"]
     except KeyError:
         LOGGER.error("Missing env: DIR_OUTPUT")
@@ -92,7 +98,7 @@ def get_options():
         options_okay = False
     if not options_okay:
         sys.exit(2)
-    return int(job_id), action, schedule, templates_pn, dir_storage
+    return int(job_id), branch, action, schedule, templates_pn, dir_storage
 
 
 def load_matchers_summary():
@@ -206,7 +212,7 @@ def generate_cr(templates_pn, pool_details, dir_storage):
         output_fh.write("\n")
 
 
-def append_schedule(job_id, action, id_pool, dir_storage):
+def append_schedule(job_id, branch, action, id_pool, dir_storage):
     """
     Composes the JSONL and appends to file.
     """
@@ -221,6 +227,7 @@ def append_schedule(job_id, action, id_pool, dir_storage):
     json_packet["action"] = action
     json_packet["initialized"] = False
     json_packet["poolId"] = id_pool
+    json_packet["branch"] = branch
     with open(schedule_pn, mode="a", encoding="utf-8") as output_fh:
         output_fh.write(json.dumps(json_packet, sort_keys=False, indent=None))
         output_fh.write("\n")
@@ -228,13 +235,14 @@ def append_schedule(job_id, action, id_pool, dir_storage):
 
 def main():
     """
+    Generate and commit Kubernetes custom resource for a pool at the GitOps repository.
     Append the schedule JSONL to schedule-deployments.jsonl file.
     """
-    job_id, action, schedule, templates_pn, dir_storage = get_options()
+    job_id, branch, action, schedule, templates_pn, dir_storage = get_options()
     matchers_summary = load_matchers_summary()
     id_pool, pool_details = assemble_pool_details(schedule, matchers_summary)
     generate_cr(templates_pn, pool_details, dir_storage)
-    append_schedule(job_id, action, id_pool, dir_storage)
+    append_schedule(job_id, branch, action, id_pool, dir_storage)
 
 
 if __name__ == "__main__":
