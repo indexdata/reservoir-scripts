@@ -38,6 +38,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: "0.12.5"
+          enable-cache: false
+
+      - name: Set up uv Python
+        run: |
+          uv python install 3.13
+
       - name: Verify inputs
         id: verify-inputs
         env:
@@ -54,8 +64,8 @@ jobs:
               errors+=("The matcher '${matcher}' is not found.")
               continue
             fi
-            sha_short=$(git rev-parse HEAD | cut -c 1-7)
-            schedules+=("${matcher}:${sha_short}")
+            sha=$(git rev-parse HEAD)
+            schedules+=("${matcher}:${sha}")
           done
           if [ ${#errors[@]} -gt 0 ]; then
             printf "ERROR: %s\n" "${errors[@]}"
@@ -80,32 +90,31 @@ jobs:
           repositories: ${{ secrets.REPO_NAME_GITOPS }}
           permission-contents: write
 
-      - name: Checkout GitOps Repository
+      - name: Checkout GitOps repository
         uses: actions/checkout@v7
         with:
           repository: indexdata/${{ secrets.REPO_NAME_GITOPS }}
           path: ${{ secrets.REPO_NAME_GITOPS }}
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Append JSONL to file
+      - name: Generate data files
         env:
           ACTION: ${{ inputs.action }}
           SCHEDULE: ${{ steps.verify-inputs.outputs.schedule }}
           DIR_OUTPUT: ${{ secrets.REPO_NAME_GITOPS }}
           JOB_ID: ${{ github.run_number }}
-        run: python3 .github/workflows/scripts/schedule_deployments.py -l info
-
-      - name: Show recent schedule
-        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/schedule-deployments.jsonl
+        run: uv run .github/workflows/scripts/schedule_deployments.py -l info
 
       - name: Commit git changes and push
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
-          ls
           git config --global user.name "github-actions-reservoir-scripts"
           git config --global user.email "github-actions-reservoir-scripts@indexdata.com"
           git add .
           git status
-          git commit -m "Apply schedule deployments"
+          git commit -m "Generate pool custom resource"
           echo "Do git push ..."
           git push
+
+      - name: Show recent schedule
+        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/minitex-matchers/log/schedule-deployments.jsonl
