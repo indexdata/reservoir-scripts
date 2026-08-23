@@ -117,7 +117,7 @@ Each matcher is briefly explained in the [js/matchers/README.md](matchers/README
 For each matcher there is an entry in the [js/package.json](package.json) file to declare its test to be run using Node.js (e.g. `test-goldrush2024`).
 
 To add a new matcher, follow the structure of an existing matcher.
-Also declare it at the file [matchers-summary.json](../matchers-summary.json).
+Also declare it at the [matchers-summary.json](../matchers-summary.json) file.
 
 > [!IMPORTANT]
 > The matcher names are restricted to alpha-numeric or hyphen (dash) characters.
@@ -197,11 +197,11 @@ Note that there is currently a tiny glitch with this workflow. The first git pus
 
 ### Workflow schedule-deployment
 
-The [schedule-deployment](https://github.com/indexdata/reservoir-scripts/actions/workflows/schedule-deployment.yml) Workflow adds an entry to the [schedule-deployments.jsonl](schedule-deployments.jsonl) file.
+The [schedule-deployment](https://github.com/indexdata/reservoir-scripts/actions/workflows/schedule-deployment.yml) Workflow generates and commits a Kubernetes custom resource for the declared pool.
 
 Other back-room processes will conduct the deployment of the matchers and the pool.
 
-When matchers are ready, then select the Workflow and trigger a run via the workflow_dispatch event (i.e. select `Run workflow` on the right-hand side).
+When matchers are ready, then select the Workflow and trigger a run via the `workflow_dispatch` event (i.e. select `Run workflow` on the right-hand side).
 
 Specify the branch (note that `main` branch is not allowed).
 
@@ -211,5 +211,5 @@ For example `goldrush2024,isxn`
 
 Specify the `action` "add or remove".
 
-The Workflow will determine the short git commit SHA for the head of the branch.
+The Workflow will determine the git commit SHA for the head of the branch.
 
