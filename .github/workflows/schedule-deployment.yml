@@ -101,6 +101,7 @@ jobs:
         env:
           ACTION: ${{ inputs.action }}
           SCHEDULE: ${{ steps.verify-inputs.outputs.schedule }}
+          BRANCH_NAME: ${{ github.ref_name }}
           DIR_OUTPUT: ${{ secrets.REPO_NAME_GITOPS }}
           JOB_ID: ${{ github.run_number }}
         run: uv run .github/workflows/scripts/schedule_deployments.py -l info
