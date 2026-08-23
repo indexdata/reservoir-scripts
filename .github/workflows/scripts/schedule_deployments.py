@@ -26,7 +26,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.5.0"
+SCRIPT_VERSION = "1.5.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -95,6 +95,57 @@ def get_options():
     return int(job_id), action, schedule, templates_pn, dir_storage
 
 
+def load_matchers_summary():
+    """
+    Loads the summary of all matchers.
+    """
+    input_fn = "matchers-summary.json"
+    input_pn = PROG_PATH.parent.parent.parent.joinpath(input_fn)
+    LOGGER.debug("%s", input_pn)
+    with open(input_pn, mode="r", encoding="utf-8") as json_fh:
+        try:
+            summary = json.load(json_fh)
+        except json.decoder.JSONDecodeError as err:
+            msg = f"Trouble loading '{input_fn}' JSON file: {err.lineno} {err.msg}"
+            LOGGER.critical(msg)
+            sys.exit(1)
+    return summary
+
+
+def get_matcher_script_path(matchers_summary, matcher):
+    """
+    Get the script pathname for this matcher.
+    """
+    script_pn = None
+    input_fn = "matchers-summary.json"
+    if not any(dictionary.get("name") == matcher for dictionary in matchers_summary):
+        msg = f"Matcher '{matcher}' not found in '{input_fn}' file."
+        LOGGER.critical(msg)
+        sys.exit(1)
+    else:
+        matcher_details = [d for d in matchers_summary if d["name"] == matcher]
+        try:
+            matcher_details[0]["script"]
+        except KeyError:
+            msg = (
+                "The 'script' property is not found for "
+                f"matcher '{matcher}' in '{input_fn}' file."
+            )
+            LOGGER.critical(msg)
+            sys.exit(1)
+        script_fn = matcher_details[0]["script"]
+        script_pn = PROG_PATH.parent.parent.parent.joinpath(script_fn)
+        if not script_pn.exists():
+            msg = (
+                f"The script '{script_fn}' declared for "
+                f"matcher '{matcher}' in '{input_fn}' file "
+                "does not exist."
+            )
+            LOGGER.critical(msg)
+            sys.exit(1)
+    return script_pn
+
+
 def append_schedule(job_id, action, id_pool, dir_storage):
     """
     Composes the JSONL and appends to file.
@@ -102,7 +153,6 @@ def append_schedule(job_id, action, id_pool, dir_storage):
     dir_log = dir_storage.joinpath("log")
     os.makedirs(dir_log, exist_ok=True)
     schedule_pn = dir_log.joinpath("schedule-deployments.jsonl")
-    LOGGER.debug("schedule_pn=%s", schedule_pn)
     json_packet = {}
     json_packet["id"] = job_id
     json_packet["scheduleDate"] = (
@@ -122,11 +172,12 @@ def main():
     """
     job_id, action, schedule, templates_pn, dir_storage = get_options()
     LOGGER.debug("schedule=%s", schedule)
+    matchers_summary = load_matchers_summary()
     deployments = schedule.split(",")
     matchers = []
-    id_pool = ""
     for deployment in deployments:
         matcher, sha = deployment.split(":")
+        matcher_pn = get_matcher_script_path(matchers_summary, matcher)
         id_matcher = f"{matcher}~{sha[0:7]}"
         matchers.append(id_matcher)
     id_pool = "_".join(matchers)

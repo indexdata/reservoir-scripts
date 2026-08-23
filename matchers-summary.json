@@ -1,0 +1,42 @@
+[
+  {
+    "name": "deepdish",
+    "type": "javascript",
+    "script": "js/matchers/deepdish/deepdish.mjs"
+  },
+  {
+    "name": "goldrush",
+    "type": "javascript",
+    "script": "js/matchers/goldrush/goldrush.mjs"
+  },
+  {
+    "name": "goldrush2024",
+    "type": "javascript",
+    "script": "js/matchers/goldrush2024/goldrush.mjs"
+  },
+  {
+    "name": "isxn",
+    "type": "javascript",
+    "script": "js/matchers/isxn/isxn.mjs"
+  },
+  {
+    "name": "malort",
+    "type": "javascript",
+    "script": "js/matchers/malort/malort.mjs"
+  },
+  {
+    "name": "shareInsts",
+    "type": "javascript",
+    "script": "js/matchers/shareInsts/shareInsts.mjs"
+  },
+  {
+    "name": "shareWorks",
+    "type": "javascript",
+    "script": "js/matchers/shareWorks/shareWorks.mjs"
+  },
+  {
+    "name": "sharevde",
+    "type": "javascript",
+    "script": "js/matchers/sharevde/sharevde.mjs"
+  }
+]
