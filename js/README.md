@@ -117,6 +117,7 @@ Each matcher is briefly explained in the [js/matchers/README.md](matchers/README
 For each matcher there is an entry in the [js/package.json](package.json) file to declare its test to be run using Node.js (e.g. `test-goldrush2024`).
 
 To add a new matcher, follow the structure of an existing matcher.
+Also declare it at the file [matchers-summary.json](../matchers-summary.json).
 
 > [!IMPORTANT]
 > The matcher names are restricted to alpha-numeric or hyphen (dash) characters.

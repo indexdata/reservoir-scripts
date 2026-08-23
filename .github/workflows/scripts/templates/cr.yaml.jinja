@@ -1,0 +1,16 @@
+apiVersion: indexdata.com/v1alpha1
+kind: Pool
+metadata:
+  name: {{id_pool}}
+  namespace: minitex-matchers
+spec:
+  pool:
+    id: {{id_pool}}
+    matcher: {{pool_matcher}}
+    update: ingest
+  codeModules:
+  {%- for matcher in matchers %}
+    - id: {{matcher.id}}-matcher
+      type: {{matcher.type}}
+      url: https://raw.githubusercontent.com/indexdata/reservoir-scripts/{{matcher.sha}}/{{matcher.script}}
+  {%- endfor -%}
