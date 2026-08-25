@@ -14,7 +14,7 @@ from pathlib import Path
 import re
 import sys
 
-SCRIPT_VERSION = "1.3.1"
+SCRIPT_VERSION = "1.3.2"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -125,7 +125,7 @@ def main():
     matcher_src_re = r"^js/matchers/([^/]+)/.+\.mjs$"
     test_src_re = r"^js/test/([^.]+)\.mjs$"
     test_assertion_re = r"js/test/assertions-([^\.]+)\.json$"
-    matcher_name_re = r"^[0-9a-zA-Z-]+$"
+    matcher_name_re = r"^[a-zA-Z][0-9a-zA-Z-]+[0-9a-zA-Z]$"
     matcher_errors = False
     matchers_records = gather_matchers_test_records()
     # pprint.pprint(matchers_records)
@@ -151,15 +151,24 @@ def main():
         for matcher in detect_matcher_for_record(matchers_records, input_fn):
             matchers.add(matcher)
     for matcher in matchers:
-        match = re.search(matcher_name_re, matcher)
-        if not match:
+        if len(matcher) < 3:
             msg = (
                 f"matcher '{matcher}': "
-                "The matcher names are restricted to alpha-numeric "
-                "or hyphen (dash) characters."
+                "The matcher name length must be longer than 2 characters"
             )
             LOGGER.error(msg)
             matcher_errors = True
+        else:
+            match = re.search(matcher_name_re, matcher)
+            if not match:
+                msg = (
+                    f"matcher '{matcher}': "
+                    "The matcher names are restricted to alpha-numeric "
+                    "or hyphen characters, and must begin with an alpha character, "
+                    "and must not end with hyphen."
+                )
+                LOGGER.error(msg)
+                matcher_errors = True
         if matcher in ["goldrush2021"]:
             continue
         dir_matcher = Path(f"matchers/{matcher}")

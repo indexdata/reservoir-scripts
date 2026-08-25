@@ -120,7 +120,7 @@ To add a new matcher, follow the structure of an existing matcher.
 Also declare it at the [matchers-summary.json](../matchers-summary.json) file.
 
 > [!IMPORTANT]
-> The matcher names are restricted to alpha-numeric or hyphen (dash) characters.
+> The matcher names are restricted to alpha-numeric or hyphen characters, and must begin with an alpha character, and must not end with hyphen, and must be longer than two characters.
 
 ### editorconfig
 
