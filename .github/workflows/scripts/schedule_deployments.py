@@ -23,11 +23,12 @@ import logging
 import os
 from pathlib import Path
 import pprint  # pylint: disable=unused-import
+import re
 import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.6.0"
+SCRIPT_VERSION = "1.7.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -164,7 +165,23 @@ def get_matcher_script(matchers_summary, matcher):
     return script_fn, script_type
 
 
-def assemble_pool_details(schedule, matchers_summary):
+def slugify(branch):
+    """
+    Translate branch name into a string suitable for pool ID.
+    """
+    slug = branch.lower().strip()
+    slug = re.sub(r"\W+", "-", slug)  # Replace non-word characters
+    slug = slug.replace("_", "-")
+    slug = re.sub(r"[-]+", "-", slug)
+    slug = slug.strip("-")
+    # Ensure first character is alpha
+    match = re.search(r"^([0-9])", slug)
+    if match:
+        slug = f"a{slug}"
+    return slug
+
+
+def assemble_pool_details(schedule, branch, matchers_summary):
     """
     Assembles the details of this pool.
     """
@@ -186,7 +203,8 @@ def assemble_pool_details(schedule, matchers_summary):
         matchers.append(id_matcher)
         pool_matchers.append(f"{id_matcher}-matcher::matchkey")
         pool_details["matchers"].append(matcher_packet)
-    id_pool = "-".join(matchers)
+    id_pool = slugify(branch)
+    # id_pool = "-".join(matchers)
     pool_details["id_pool"] = id_pool
     pool_details["pool_matcher"] = ", ".join(pool_matchers)
     return id_pool, pool_details
@@ -240,7 +258,7 @@ def main():
     """
     job_id, branch, action, schedule, templates_pn, dir_storage = get_options()
     matchers_summary = load_matchers_summary()
-    id_pool, pool_details = assemble_pool_details(schedule, matchers_summary)
+    id_pool, pool_details = assemble_pool_details(schedule, branch, matchers_summary)
     generate_cr(templates_pn, pool_details, dir_storage)
     append_schedule(job_id, branch, action, id_pool, dir_storage)
 
