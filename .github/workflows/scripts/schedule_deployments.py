@@ -27,7 +27,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.5.4"
+SCRIPT_VERSION = "1.6.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -181,12 +181,12 @@ def assemble_pool_details(schedule, matchers_summary):
         matcher_fn, matcher_type = get_matcher_script(matchers_summary, matcher)
         matcher_packet["script"] = matcher_fn
         matcher_packet["type"] = matcher_type
-        id_matcher = f"{matcher}~{sha[0:7]}"
+        id_matcher = f"{matcher}-{sha[0:7]}"
         matcher_packet["id"] = id_matcher
         matchers.append(id_matcher)
         pool_matchers.append(f"{id_matcher}-matcher::matchkey")
         pool_details["matchers"].append(matcher_packet)
-    id_pool = "_".join(matchers)
+    id_pool = "-".join(matchers)
     pool_details["id_pool"] = id_pool
     pool_details["pool_matcher"] = ", ".join(pool_matchers)
     return id_pool, pool_details
