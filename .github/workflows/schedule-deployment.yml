@@ -106,8 +106,9 @@ jobs:
       - name: Obtain poolId from log
         id: obtain-poolid
         run: |
-          echo "poolid=$(tail -1 ${{ secrets.REPO_NAME_GITOPS }}/log/schedule-deployments.jsonl | jq -r '.poolId')" \
-            | tee -a "$GITHUB_OUTPUT"
+          cd ${{ secrets.REPO_NAME_GITOPS }}
+          echo "poolid=$(tail -1 log/schedule-deployments.jsonl | jq -r '.poolId')" | tee -a "$GITHUB_OUTPUT"
+          cd ..
 
       - name: Show schedule summary
         run: |
@@ -119,7 +120,7 @@ jobs:
       - name: List pool descriptors
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
-          ls -t pools/*.yml
+          ls -t pools/*.yaml
           cd ..
 
       - name: Delete pool descriptor if action=remove
