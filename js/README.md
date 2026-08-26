@@ -205,9 +205,7 @@ When matchers are ready, then select the Workflow and trigger a run via the `wor
 
 Specify the branch (note that `main` branch is not allowed).
 
-For each matcher that is to form the pool, specify its matcher name. This is a comma-separated list of matchers.
-
-For example `goldrush2024,isxn`
+Specify the name of the matcher that is to form the pool. For example: `isxn`
 
 Specify the `action` "add or remove".
 

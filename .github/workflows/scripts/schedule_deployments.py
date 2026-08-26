@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Generate and commit Kubernetes custom resource for a pool at the GitOps repository.
+Generate Kubernetes custom resource for a pool at the GitOps repository.
 Append the schedule JSONL to schedule-deployments.jsonl file.
 
 NOTE: Please use 'black' to re-format code.
@@ -28,7 +28,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.7.0"
+SCRIPT_VERSION = "1.8.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -173,12 +173,13 @@ def slugify(branch):
     slug = re.sub(r"\W+", "-", slug)  # Replace non-word characters
     slug = slug.replace("_", "-")
     slug = re.sub(r"[-]+", "-", slug)
-    slug = slug.strip("-")
+    slug = slug.lstrip("-")
     # Ensure first character is alpha
     match = re.search(r"^([0-9])", slug)
     if match:
         slug = f"a{slug}"
-    return slug
+    slug = slug.rstrip("-")
+    return slug[0:44]
 
 
 def assemble_pool_details(schedule, branch, matchers_summary):
@@ -253,13 +254,14 @@ def append_schedule(job_id, branch, action, id_pool, dir_storage):
 
 def main():
     """
-    Generate and commit Kubernetes custom resource for a pool at the GitOps repository.
+    Generate Kubernetes custom resource for a pool at the GitOps repository.
     Append the schedule JSONL to schedule-deployments.jsonl file.
     """
     job_id, branch, action, schedule, templates_pn, dir_storage = get_options()
     matchers_summary = load_matchers_summary()
     id_pool, pool_details = assemble_pool_details(schedule, branch, matchers_summary)
-    generate_cr(templates_pn, pool_details, dir_storage)
+    if action == "add":
+        generate_cr(templates_pn, pool_details, dir_storage)
     append_schedule(job_id, branch, action, id_pool, dir_storage)
 
 
