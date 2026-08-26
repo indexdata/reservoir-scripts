@@ -2,6 +2,7 @@ name: schedule-deployment
 
 env:
   documentation: 'https://github.com/indexdata/reservoir-scripts/blob/main/js/README.md#workflow-schedule-deployment'
+  namespace: minitex-matchers
 
 on:
   workflow_dispatch:
@@ -106,9 +107,8 @@ jobs:
       - name: Obtain poolId from log
         id: obtain-poolid
         run: |
-          cd ${{ secrets.REPO_NAME_GITOPS }}
-          echo "poolid=$(tail -1 minitex-matchers/log/schedule-deployments.jsonl | jq -r '.poolId')" | tee -a "$GITHUB_OUTPUT"
-          cd ..
+          echo "poolid=$(tail -1 ${{ secrets.REPO_NAME_GITOPS }}/${{ env.namespace }}/log/schedule-deployments.jsonl \
+            | jq -r '.poolId')" | tee -a "$GITHUB_OUTPUT"
 
       - name: Show schedule summary
         run: |
@@ -120,7 +120,7 @@ jobs:
       - name: List pool descriptors
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
-          ls -t minitex-matchers/pools/*.yaml
+          git ls-tree -r --name-only HEAD ${{ env.namespace }}/pools
           cd ..
 
       - name: Delete pool descriptor if action=remove
@@ -144,4 +144,4 @@ jobs:
           git push
 
       - name: Show recent schedule
-        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/minitex-matchers/log/schedule-deployments.jsonl
+        run: tail -5 ${{ secrets.REPO_NAME_GITOPS }}/${{ env.namespace }}/log/schedule-deployments.jsonl
