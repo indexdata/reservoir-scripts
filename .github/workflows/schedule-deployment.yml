@@ -126,7 +126,14 @@ jobs:
       - name: Delete pool descriptor if action=remove
         if: ${{ inputs.action == 'remove' }}
         run: |
-          echo "Delete pool descriptor ${{ steps.obtain-poolid.outputs.poolid }}.yaml"
+          cd ${{ secrets.REPO_NAME_GITOPS }}
+          filename="${{ env.namespace }}/pools/${{ steps.obtain-poolid.outputs.poolid }}.yaml"
+          if [ -e "${filename}" ]; then
+            git rm "${filename}"
+          else
+            echo "The pool descriptor '${filename}' does not exist."
+          fi
+          cd ..
 
       - name: Commit git changes and push
         run: |
