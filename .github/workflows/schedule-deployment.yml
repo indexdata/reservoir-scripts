@@ -76,10 +76,6 @@ jobs:
             echo "schedule=$schedule" | tee -a "$GITHUB_OUTPUT"
           fi
 
-      - name: Show schedule summary
-        run: |
-          echo "schedule: ${{ inputs.action }}: ${{ steps.verify-inputs.outputs.schedule }}" >> "$GITHUB_STEP_SUMMARY"
-
       - name: Create GitHub App Token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -98,7 +94,7 @@ jobs:
           path: ${{ secrets.REPO_NAME_GITOPS }}
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Generate data files
+      - name: Configure pool descriptor and log entry
         env:
           ACTION: ${{ inputs.action }}
           SCHEDULE: ${{ steps.verify-inputs.outputs.schedule }}
@@ -107,6 +103,30 @@ jobs:
           JOB_ID: ${{ github.run_number }}
         run: uv run .github/workflows/scripts/schedule_deployments.py -l info
 
+      - name: Obtain poolId from log
+        id: obtain-poolid
+        run: |
+          echo "poolid=$(tail -1 ${{ secrets.REPO_NAME_GITOPS }}/log/schedule-deployments.jsonl | jq -r '.poolId')" \
+            | tee -a "$GITHUB_OUTPUT"
+
+      - name: Show schedule summary
+        run: |
+          if ${{ inputs.action == 'add' }}; then
+            echo "schedule: ${{ inputs.action }}: ${{ steps.verify-inputs.outputs.schedule }}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "${{ inputs.action }} pool descriptor: ${{ steps.obtain-poolid.outputs.poolid }}.yaml" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: List pool descriptors
+        run: |
+          cd ${{ secrets.REPO_NAME_GITOPS }}
+          ls -t pools/*.yml
+          cd ..
+
+      - name: Delete pool descriptor if action=remove
+        if: ${{ inputs.action == 'remove' }}
+        run: |
+          echo "Delete pool descriptor ${{ steps.obtain-poolid.outputs.poolid }}.yaml"
+
       - name: Commit git changes and push
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
@@ -114,7 +134,11 @@ jobs:
           git config --global user.email "github-actions-reservoir-scripts@indexdata.com"
           git add .
           git status
-          git commit -m "Generate pool custom resource"
+          if ${{ inputs.action == 'add' }}; then
+            git commit -m "Add pool ${{ steps.obtain-poolid.outputs.poolid }}"
+          else
+            git commit -m "Remove pool ${{ steps.obtain-poolid.outputs.poolid }}"
+          fi
           echo "Do git push ..."
           git push
 
