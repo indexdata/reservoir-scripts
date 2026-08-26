@@ -107,7 +107,8 @@ jobs:
         id: obtain-poolid
         run: |
           cd ${{ secrets.REPO_NAME_GITOPS }}
-          echo "poolid=$(tail -1 log/schedule-deployments.jsonl | jq -r '.poolId')" | tee -a "$GITHUB_OUTPUT"
+          ls -R
+          echo "poolid=$(tail -1 ./log/schedule-deployments.jsonl | jq -r '.poolId')" | tee -a "$GITHUB_OUTPUT"
           cd ..
 
       - name: Show schedule summary
