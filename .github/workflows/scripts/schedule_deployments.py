@@ -28,7 +28,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.7.0"
+SCRIPT_VERSION = "1.7.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -173,12 +173,13 @@ def slugify(branch):
     slug = re.sub(r"\W+", "-", slug)  # Replace non-word characters
     slug = slug.replace("_", "-")
     slug = re.sub(r"[-]+", "-", slug)
-    slug = slug.strip("-")
+    slug = slug.lstrip("-")
     # Ensure first character is alpha
     match = re.search(r"^([0-9])", slug)
     if match:
         slug = f"a{slug}"
-    return slug
+    slug = slug.rstrip("-")
+    return slug[0:44]
 
 
 def assemble_pool_details(schedule, branch, matchers_summary):
