@@ -28,6 +28,10 @@ The [js/matchers/deepdish](deepdish) returns an array of matchkeys, utilising th
 
 The [js/matchers/malort](malort) creates single record clusters by returning an empty string.
 
+### minitex-test
+
+The [js/matchers/minitex-test](minitex-test) is a copy of goldrush2024 and used just to test the test matcher deployment.
+
 ### isxn
 
 The [js/matchers/isxn](isxn) for clustering simply around isbn/issn and allow searching on them via SRU.

@@ -25,6 +25,11 @@
     "script": "js/matchers/malort/malort.mjs"
   },
   {
+    "name": "minitex-test",
+    "type": "javascript",
+    "script": "js/matchers/minitex-test/minitex-test.mjs"
+  },
+  {
     "name": "shareInsts",
     "type": "javascript",
     "script": "js/matchers/shareInsts/shareInsts.mjs"

@@ -8,6 +8,7 @@
     "test-goldrush2024": "node test/goldrush2024.mjs",
     "test-goldrush2021": "node test/goldrush2021.mjs",
     "test-malort": "node test/malort.mjs",
+    "test-minitex-test": "node test/minitex-test.mjs",
     "test-isxn": "node test/isxn.mjs",
     "test-sharevde": "node test/sharevde.mjs",
     "test-shareInsts": "node test/shareInsts.mjs",
