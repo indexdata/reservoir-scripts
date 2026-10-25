@@ -16,8 +16,7 @@ on:
           - 'add'
           - 'remove'
       deployments:
-        # description: 'List of matchers, e.g. goldrush2024,isxn'
-        description: 'The matcher, e.g. isxn'
+        description: 'List of matchers, e.g. goldrush2024,isxn'
         required: true
         type: string
 
