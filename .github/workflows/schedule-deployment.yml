@@ -16,8 +16,7 @@ on:
           - 'add'
           - 'remove'
       deployments:
-        # description: 'List of matchers, e.g. goldrush2024,isxn'
-        description: 'The matcher, e.g. isxn'
+        description: 'List of matchers, e.g. goldrush2024,isxn'
         required: true
         type: string
 
@@ -130,7 +129,8 @@ jobs:
           if [ -e "${filename}" ]; then
             git rm "${filename}"
           else
-            echo "The pool descriptor '${filename}' does not exist."
+            echo "ERROR: The pool descriptor '${filename}' does not exist." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
           cd ..
 
