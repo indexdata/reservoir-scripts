@@ -21,7 +21,6 @@ updates:
     schedule:
       interval: "cron"
       cronjob: "38 01 * * MON"
-    cronjob: "04 07 * * MON"
     cooldown:
       default-days: 5
       semver-major-days: 30
