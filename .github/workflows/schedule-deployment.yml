@@ -121,6 +121,17 @@ jobs:
           git ls-tree -r --name-only HEAD ${{ env.namespace }}/pools
           cd ..
 
+      - name: Ensure unique pool descriptor if action=add
+        if: ${{ inputs.action == 'add' }}
+        run: |
+          cd ${{ secrets.REPO_NAME_GITOPS }}
+          filename="${{ env.namespace }}/pools/${{ steps.obtain-poolid.outputs.poolid }}.yaml"
+          if [ -e "${filename}" ]; then
+            echo "ERROR: The pool descriptor '${filename}' already exists. Do remove first." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          cd ..
+
       - name: Delete pool descriptor if action=remove
         if: ${{ inputs.action == 'remove' }}
         run: |
@@ -129,7 +140,7 @@ jobs:
           if [ -e "${filename}" ]; then
             git rm "${filename}"
           else
-            echo "ERROR: The pool descriptor '${filename}' does not exist." >> "$GITHUB_STEP_SUMMARY"
+            echo "ERROR: The pool descriptor '${filename}' does not exist." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
           cd ..
