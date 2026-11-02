@@ -129,7 +129,7 @@ jobs:
           if [ -e "${filename}" ]; then
             git rm "${filename}"
           else
-            echo "ERROR: The pool descriptor '${filename}' does not exist." >> "$GITHUB_STEP_SUMMARY"
+            echo "ERROR: The pool descriptor '${filename}' does not exist." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
           cd ..
