@@ -28,7 +28,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.8.0"
+SCRIPT_VERSION = "1.9.0"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -218,7 +218,12 @@ def generate_cr(templates_pn, pool_details, dir_storage):
     # pprint.pprint(pool_details)
     dir_pools = dir_storage.joinpath("pools")
     os.makedirs(dir_pools, exist_ok=True)
-    pool_pn = dir_pools.joinpath(f"{pool_details['id_pool']}.yaml")
+    pool_fn = f"{pool_details['id_pool']}.yaml"
+    pool_pn = dir_pools.joinpath(pool_fn)
+    if pool_pn.exists():
+        msg = f"The pool descriptor '{pool_fn}' already exists. Do remove first."
+        LOGGER.critical(msg)
+        sys.exit(1)
     env_jinja = Environment(loader=FileSystemLoader(templates_pn))
     template_cr = env_jinja.get_template("cr.yaml.jinja")
     content_cr = template_cr.render(
