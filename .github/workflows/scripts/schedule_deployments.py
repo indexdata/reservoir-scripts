@@ -28,7 +28,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-SCRIPT_VERSION = "1.9.0"
+SCRIPT_VERSION = "1.9.1"
 
 LOGLEVELS = {
     "debug": logging.DEBUG,
@@ -116,6 +116,20 @@ def load_matchers_summary():
             msg = f"Trouble loading '{input_fn}' JSON file: {err.lineno} {err.msg}"
             LOGGER.critical(msg)
             sys.exit(1)
+    matcher_names = {}
+    duplicates = []
+    for matcher in summary:
+        matcher_name = matcher["name"]
+        try:
+            matcher_names[matcher_name]
+        except KeyError:
+            matcher_names[matcher_name] = True
+        else:
+            duplicates.append(matcher_name)
+    if duplicates:
+        msg = f"Duplicate entries in {input_fn} file: {', '.join(duplicates)}"
+        LOGGER.critical(msg)
+        sys.exit(1)
     return summary
 
 
