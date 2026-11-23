@@ -14,7 +14,7 @@
     "test-shareWorks": "node test/shareWorks.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "=2.6.6",
+    "@biomejs/biome": "=2.6.8",
     "globals": "^17.14.0"
   }
 }
